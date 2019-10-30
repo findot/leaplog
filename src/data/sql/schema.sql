@@ -1,42 +1,37 @@
 CREATE TABLE vectors (
-    id INTEGER NOT NULL AUTO INCREMENT,
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    x FLOAT NOT NULL,
-    y FLOAT NOT NULL,
-    z FLOAT NOT NULL,
-
-    PRIMARY KEY(id)
+    x           FLOAT NOT NULL,
+    y           FLOAT NOT NULL,
+    z           FLOAT NOT NULL
 );
 
 CREATE TABLE subjects (
-    id          INTEGER NOT NULL AUTO INCREMENT,
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    
     firstname   VARCHAR(255) NOT NULL,
-    lastname    VARCHAR(255) NOT NULL,
-
-    PRIMARY KEY (id)
+    lastname    VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE actions (
-    id          INTEGER NOT NULL AUTO INCREMENT,
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
     
     subject     INTEGER NOT NULL,
     reference   INTEGER NOT NULL,
 
-    PRIMARY KEY (id),
     FOREIGN KEY (subject)   REFERENCES subject(id)
 );
 
 CREATE TABLE frames (
-    id          INTEGER NOT NULL AUTO INCREMENT,
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
     
     action      INTEGER NOT NULL,
 
-    PRIMARY KEY (id),
     FOREIGN KEY (action)    REFERENCES action(id)
 );
 
 CREATE TABLE arms (
-    id          INTEGER NOT NULL AUTO INCREMENT,
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
 
     basis       INTEGER NOT NULL,
     direction   INTEGER NOT NULL,
@@ -45,7 +40,6 @@ CREATE TABLE arms (
 
     width       FLOAT NOT NULL,
 
-
     FOREIGN KEY (basis) REFERENCES vectors(id),
     FOREIGN KEY (direction) REFERENCES vectors(id),
     FOREIGN KEY (elbow_position) REFERENCES vectors(id),
@@ -53,9 +47,9 @@ CREATE TABLE arms (
 );
 
 CREATE TABLE hands (
-    id              INTEGER NOT NULL AUTO INCREMENT,
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    frame           INTEGER NOT NULL AUTO INCREMENT,
+    frame           INTEGER NOT NULL,
 
     is_left         INTEGER(1) NOT NULL,
     is_right        INTEGER(1) NOT NULL,
@@ -72,7 +66,6 @@ CREATE TABLE hands (
     confidence      FLOAT,
     time_visible    FLOAT,
 
-    PRIMARY KEY (id),
     FOREIGN KEY (frame)     REFERENCES frames(id),
     FOREIGN KEY (basis)     REFERENCES basis(id),
     FOREIGN KEY (direction) REFERENCES vectors(id),
@@ -83,7 +76,7 @@ CREATE TABLE hands (
 );
 
 CREATE TABLE sphere (
-    id              INTEGER NOT NULL AUTO INCREMENT,
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
 
     center          INTEGER NOT NULL,
     radius          FLOAT NOT NULL,
@@ -92,18 +85,17 @@ CREATE TABLE sphere (
 );
 
 CREATE TABLE fingers (
-    id          INTEGER NOT NULL AUTO INCREMENT,
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
 
     hand        INTEGER NOT NULL,
 
     type        TINYINT(4),
 
-    PRIMARY KEY (id),
     FOREIGN KEY (hand) REFERENCES hands(id)
 );
 
 CREATE TABLE fingers_bones (
-    id          INTEGER NOT NULL AUTO INCREMENT,
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
 
     finger      INTEGER NOT NULL,
     bone        INTEGER NOT NULL,
@@ -113,7 +105,7 @@ CREATE TABLE fingers_bones (
 );
 
 CREATE TABLE bones(
-    ID          INTEGER NOT NULL AUTO INCREMENT,
+    ID          INTEGER PRIMARY KEY AUTOINCREMENT,
 
     basis       INTEGER NOT NULL,
     position    INTEGER NOT NULL,
@@ -123,7 +115,6 @@ CREATE TABLE bones(
     length      FLOAT NOT NULL,
     width       FLOAT NOT NULL,
 
-    PRIMARY KEY (id),
     FOREIGN KEY (basis) REFERENCES vectors(id),
     FOREIGN KEY (position) REFERENCES vectors(id),
     FOREIGN KEY (center) REFERENCES vectors(id)
