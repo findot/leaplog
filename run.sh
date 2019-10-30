@@ -1,3 +1,11 @@
 #/usr/bin/env bash
 
-PYTHONPATH=lib:$PYTHONPATH python ./src/Sample.py
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+	LDPATH=linux
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+	LDPATH=osx
+else
+	echo "Unsupported operating system"
+fi
+
+PYTHONPATH=lib/$LDPATH:$PYTHONPATH python2 ./src/main.py
