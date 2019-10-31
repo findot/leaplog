@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
 from .Entity import Entity
+from .Vector import Vector
 
 
 class Basis(Entity):
 
-    __slots__ = [ 'x', 'y', 'z' ]
+    __slots__ = [ 'x', 'y', 'z', 'origin' ]
 
-    _insert_ = '''
-    INSERT INTO basis (x, y, z) VALUES (?, ?, ?)
-    '''
-
-    def __init__(self, x, y, z):
-        # type: (Vector, Vector, Vector) -> Basis
-        self.x, self.y, self.z = x.id, y.id, z.id
+    def __init__(self, leap_matrix):
+        # type: (Leap.Matrix) -> Basis
+        self.x = Vector(leap_matrix.x_basis)
+        self.y = Vector(leap_matrix.y_basis)
+        self.z = Vector(leap_matrix.z_basis)
+        self.origin = Vector(leap_matrix.origin)
     
