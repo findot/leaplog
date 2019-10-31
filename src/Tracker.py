@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sqlite3
-import time
-from datetime import datetime
+from time import time
 from .data import *
 
 
@@ -15,7 +14,7 @@ class Tracker(object):
         self.frames = []
 
     def track(self, leap_frame):
-        whence = time.mktime(datetime.now().timetuple()) - self.action.record_time
+        whence = time() - self.action.record_time
         frame = Frame(self.action, whence)
         hands = [ self._track_hand(frame, hand) for hand in leap_frame.hands ]
         self.frames.append((frame, hands))
