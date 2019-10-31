@@ -6,6 +6,18 @@ CREATE TABLE vectors (
     z           FLOAT NOT NULL
 );
 
+CREATE TABLE basis (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL,
+    Z INTEGER NOT NULL,
+
+    FOREIGN KEY (x) REFERENCES vectors(id),
+    FOREIGN KEY (y) REFERENCES vectors(id),
+    FOREIGN KEY (z) REFERENCES vectors(id)
+);
+
 CREATE TABLE subjects (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     
@@ -26,6 +38,7 @@ CREATE TABLE frames (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     
     action      INTEGER NOT NULL,
+    whence      INT,
 
     FOREIGN KEY (action)    REFERENCES action(id)
 );
@@ -40,7 +53,7 @@ CREATE TABLE arms (
 
     width       FLOAT NOT NULL,
 
-    FOREIGN KEY (basis) REFERENCES vectors(id),
+    FOREIGN KEY (basis) REFERENCES basis(id),
     FOREIGN KEY (direction) REFERENCES vectors(id),
     FOREIGN KEY (elbow_position) REFERENCES vectors(id),
     FOREIGN KEY (wrist_position) REFERENCES vectors(id)
@@ -104,7 +117,7 @@ CREATE TABLE fingers_bones (
     FOREIGN KEY(bone) REFERENCES bones(id)
 );
 
-CREATE TABLE bones(
+CREATE TABLE bones (
     ID          INTEGER PRIMARY KEY AUTOINCREMENT,
 
     basis       INTEGER NOT NULL,
@@ -115,7 +128,7 @@ CREATE TABLE bones(
     length      FLOAT NOT NULL,
     width       FLOAT NOT NULL,
 
-    FOREIGN KEY (basis) REFERENCES vectors(id),
+    FOREIGN KEY (basis) REFERENCES basis(id),
     FOREIGN KEY (position) REFERENCES vectors(id),
     FOREIGN KEY (center) REFERENCES vectors(id)
 );
