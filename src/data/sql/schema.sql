@@ -35,16 +35,16 @@ CREATE TABLE actions (
     
     subject     INTEGER NOT NULL,
     reference   INTEGER NOT NULL,
-    record_time TIMESTAMP NOT NULL,
+    record_time FLOAT NOT NULL,
 
-    FOREIGN KEY (subject)   REFERENCES subject(id)
+    FOREIGN KEY (subject)   REFERENCES subjects(id)
 );
 
 CREATE TABLE frames (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     
     action      INTEGER NOT NULL,
-    whence      INT,
+    whence      FLOAT,
 
     FOREIGN KEY (action)    REFERENCES action(id)
 );
@@ -115,7 +115,6 @@ CREATE TABLE bones (
     finger      INTEGER NOT NULL,
 
     basis       INTEGER NOT NULL,
-    position    INTEGER NOT NULL,
     direction   INTEGER NOT NULL,
     center      INTEGER NOT NULL,
 
@@ -126,7 +125,6 @@ CREATE TABLE bones (
 
     FOREIGN KEY (finger) REFERENCES finger(id),
     FOREIGN KEY (basis) REFERENCES basis(id),
-    FOREIGN KEY (position) REFERENCES vectors(id),
     FOREIGN KEY (direction) REFERENCES vectors(id),
     FOREIGN KEY (center) REFERENCES vectors(id)
 );

@@ -14,7 +14,10 @@ class Entity(object):
     @classmethod
     def bootstrap(cls, db_path):
         # type: (str) -> None
-        cls._connection_ = sqlite3.connect(db_path)
+        cls._connection_ = sqlite3.connect(
+            db_path,
+            detect_types=sqlite3.PARSE_DECLTYPES
+        )
 
     @classmethod
     def cursor(cls):
@@ -27,11 +30,11 @@ class Entity(object):
 
     @classmethod
     def commit(cls):
-        return cls._cursor_.commit()
+        return cls._connection_.commit()
 
     @classmethod
     def rollback(cls):
-        return self._cursor_.rollback()
+        return cls._connection_.rollback()
 
     @classmethod
     def _insert_(cls):
@@ -41,7 +44,7 @@ class Entity(object):
             keys = ','.join(cls.__slots__)
             values = ','.join(['?'] * len(cls.__slots__))
             cls._insert_query_ = '''
-            INSERT INTO {0} ({1}) VALUES {2}
+            INSERT INTO {0} ({1}) VALUES ({2})
             '''.format(name, keys, values)
         return cls._insert_query_
 
@@ -55,7 +58,7 @@ class Entity(object):
             slots = type(self).__slots__
             attrs = [getattr(self, slot) for slot in slots]
             for i, attr in enumerate(attrs):
-                if isinstance(attr, Entity) and not attr.saved:
+                if isinstance(attr, Entity):
                     attrs[i] = attr.save()
 
             self.cursor().execute(

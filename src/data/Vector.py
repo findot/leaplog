@@ -6,6 +6,7 @@ from .Entity import Entity
 class Vector(Entity):
 
     __slots__ = [ 'x', 'y', 'z', 'pitch', 'yaw', 'roll' ]
+    _table_ = 'vectors'
 
     def __init__(self, leap_vector):
         # typê: (Leap.Vector) -> Vector

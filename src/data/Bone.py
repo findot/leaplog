@@ -9,8 +9,9 @@ from .Basis import Basis
 
 class Bone(Entity):
 
-    __slots__ = [ 'finger', 'basis', 'position', 'direction', 'center', 'type',
-                  'length', 'width' ] 
+    __slots__ = [ 'finger', 'basis', 'direction', 'center', 'type', 'length',
+                  'width' ] 
+    _table_ = 'bones'
 
     class Type(Enum):
         TYPE_THUMB = 0
@@ -24,7 +25,6 @@ class Bone(Entity):
         super(Bone, self).__init__()
         self.finger = finger
         self.basis = Basis(leap_bone.basis)
-        self.position = Vector(leap_bone.position)
         self.direction = Vector(leap_bone.direction)
         self.center = Vector(leap_bone.center)
         self.type   = leap_bone.type

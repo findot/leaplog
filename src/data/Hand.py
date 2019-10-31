@@ -12,7 +12,8 @@ class Hand(Entity):
                   'palm_normal', 'palm_position', 'palm_velocity',
                   'wrist_position', 'confidence', 'time_visible',
                   'sphere_center', 'sphere_radius' ]
-    
+    _table_ = 'hands'
+
     def __init__(self, frame, leap_hand):
         # type: (Frame, Leap.Hand) -> Hand
         super(Hand, self).__init__()

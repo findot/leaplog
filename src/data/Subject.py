@@ -6,6 +6,7 @@ from .Entity import Entity
 class Subject(Entity):
 
     __slots__ = [ 'firstname', 'lastname' ]
+    _table_ = 'subjects'
 
     def __init__(self, firstname, lastname):
         # type: (str, str) -> Subject

@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
 
-from .data import *
 import sqlite3
+import time
+from datetime import datetime
+from .data import *
 
 
 class Tracker(object):
 
-    __slots__ = [ 'frames' ]
+    __slots__ = [ 'frames', 'action' ]
 
-    def __init__(self):
+    def __init__(self, action):
+        self.action = action
         self.frames = []
 
     def track(self, leap_frame):
-        frame = Frame(leap_frame)
-        
-        left_hand = None
-        left_hand_fingers = []
-        right_hand = None
-        right_hand_fingers = []
-
+        whence = time.mktime(datetime.now().timetuple()) - self.action.record_time
+        frame = Frame(self.action, whence)
         hands = [ self._track_hand(frame, hand) for hand in leap_frame.hands ]
-        
         self.frames.append((frame, hands))
 
     def _track_hand(self, frame, leap_hand):
@@ -28,7 +25,7 @@ class Tracker(object):
         fingers = []
         for leap_finger in leap_hand.fingers:
             finger = Finger(hand, leap_finger)
-            leap_bones = [ leap_finger.bone(t.value) for t in Finger.Type ]
+            leap_bones = [ leap_finger.bone(t.value) for t in Bone.Type ]
             bones = map(
                 lambda leap_bone: Bone(finger, leap_bone),
                 leap_bones
