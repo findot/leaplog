@@ -14,3 +14,8 @@ class Action(Entity):
         self.subject = subject
         self.reference = reference
         self.record_time = record_time
+
+    def __eq__(self, other):
+        if not isinstance(other, Action):
+            raise NotImplementedError()
+        return self.reference == other.reference

@@ -3,7 +3,19 @@
 import sqlite3
 
 
+class EntityMeta(type):
+
+    def __getitem__(cls, key):
+        if not isinstance(key, int):
+            raise TypeError('Unsupported type for Entity access')
+        return cls.select(key)
+
+
 class Entity(object):
+
+    __metaclass__ = EntityMeta
+
+    # ---------------------------------------------------------- STATIC METHODS
 
     __slots__ = [ 'saved', 'id' ]
     
@@ -48,25 +60,33 @@ class Entity(object):
             '''.format(name, keys, values)
         return cls._insert_query_
 
+    # --------------------------------------------------------- DYNAMIC METHODS
+
     def __init__(self):
         self.saved = False
         self.id = None
 
     def save(self):
         # type: () -> int
-        if not self.saved:
-            slots = type(self).__slots__
-            attrs = [getattr(self, slot) for slot in slots]
-            for i, attr in enumerate(attrs):
-                if isinstance(attr, Entity):
-                    attrs[i] = attr.save()
+        if self.saved:
+            return self.id
 
-            self.cursor().execute(
-                self._insert_(),
-                tuple(attrs)
-            )
+        attrs = [ getattr(self, slot) for slot in type(self).__slots__ ]
 
-            self.id = self.cursor().lastrowid
-            self.saved = True        
+        for i, attr in enumerate(attrs):
+            if isinstance(attr, Entity):
+                attrs[i] = attr.save()
+
+        self.cursor().execute(self._insert_(), tuple(attrs))
+        self.id = self.cursor().lastrowid
+        self.saved = True        
         
         return self.id
+
+    def __str__(self):
+        return '{0}[{1}]'.format(self.__class__.__name__, self.id)
+
+    def __eq__(self, other):
+        if type(self) != type(other):
+            raise NotImplementedError()
+        return self.id is not None and self.id == other.id
