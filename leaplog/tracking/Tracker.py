@@ -9,61 +9,92 @@ from .data import Subject, Action, Frame, Hand, Finger, Bone
 
 class Tracker(object):
 
-    __slots__ = [ 'controller', 'commander', 'messenger', 'recording' ]
+    __slots__ = [ 'controller', 'commander', 'messenger', 'in_progress',
+                  'subject', 'action', 'recording' ]
 
     def __init__(self, commander, messenger):
         # type: (Leap.Controller, Queue, Queue) -> Tracker
         self.controller = Leap.Controller()
         self.commander  = commander
         self.messenger  = messenger
-        self.recording  = False
-
-    def track(self, subject):
-        # type: (Logger, Subject) -> None
-        print('Awaiting Leap Motion device...')
-        while not self.controller.is_connected:
-            sleep(0.5)
-        print('Device is connected.')
         
-        action = None
+        self.in_progress = False
+        self.subject    = None
+        
+        self.action     = None
+        self.recording = False
+
+    @property
+    def ready(self):
+        self.controller.frame()
+        return self.controller.is_connected
+
+    def poll(self):
+        if not self.recording:
+            return self.commander.get()
+        try:
+            order, payload = self.commander.get_nowait()
+        except:
+            order = payload = None
+        return order, payload
+
+    def track(self):
+        # type: (Logger, Subject) -> None
+        if not self.ready:
+            raise RuntimeError('Leap Motion device is not connected')
+        
+        print('Starting track')
+
         while True:
-            try:
-                order, payload = self.commander.get_nowait()
-            except Queue.Empty:
-                order = payload = None
+            order, payload = self.poll()
             
             if order is None and self.recording:
-                record = self.poll(action)
+                record = self.leap_data()
                 self.messenger.put((Message.FRAME, record))
 
             elif order == Message.START:
-                self.recording = True
-                self.messenger.put((Message.START, subject))
+                if self.subject is None:
+                    self.subject = payload
+                    self.in_progress = True
+                    self.messenger.put((Message.START, self.subject))
+                elif self.action is None:
+                    self.action = payload
+                    self.recording = True
+                    self.messenger.put((Message.START, self.action))
+                else:
+                    raise RuntimeError('Inconsistent message!')
 
             elif order == Message.NEXT:
                 if self.recording:
-                    self.messenger.put((Message.SAVE, action))
-                action = Action(subject, payload, time())
-                self.messenger.put((Message.START, action))
-            
-            elif order == Message.STOP:
-                if self.recording:
-                    self.messenger.put((Message.SAVE, action))
-                self.messenger.put((Message.STOP, None))
-                self.recording = False
-                break
+                    raise RuntimeError('A recording is in progress!')
+                self.messenger.put((Message.SAVE, self.action))
+                self.action = payload
+                self.messenger.put((Message.NEXT, action))
 
-            elif order == Message.REMAKE and self.recording:
-                self.messenger.put((Message.REMAKE, action))  
+            elif order == Message.STOP:
+                if not self.recording and not self.in_progress:
+                    raise RuntimeError('No recording in progress!')
+                if self.recording:
+                    self.messenger.put((Message.STOP, self.action))
+                    self.recording = False
+                elif self.in_progress:
+                    self.messenger.put((Message.STOP, self.subject))
+                    self.in_progress = False
+                    break
+
+            elif order == Message.REMAKE:
+                if self.recording:
+                    raise RuntimeError('A recording is in progress!')
+                self.messenger.put((Message.REMAKE, self.action))  
 
             else:
                 raise RuntimeError('Unknown message {0}!'.format(order))  
         
-        print('Terminating recording')
+        print('Terminating track')
 
-    def poll(self, action):
+    def leap_data(self):
         # type: (Action) -> (Frame, [Hand])
-        whence = time() - action.record_time
+        whence = time() - self.action.record_time
         leap_frame = self.controller.frame()
         frame = Frame(action, whence)
 

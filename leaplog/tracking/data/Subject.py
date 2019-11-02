@@ -14,3 +14,8 @@ class Subject(Entity):
         self.firstname = firstname
         self.lastname = lastname
 
+    def to_dict(self):
+        return {
+            'firstname': self.firstname,
+            'lastname': self.lastname
+        }

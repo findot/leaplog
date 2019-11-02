@@ -4,23 +4,25 @@ import sqlite3
 from time import time
 from .data import *
 from .Message import Message
+from utils import db_path
+
 
 class Logger(object):
 
-    __slots__ = [ 'frames', 'messenger', 'logging' ]
+    __slots__ = [ 'frames', 'messenger', 'running', 'subject', 'action' ]
 
-    def __init__(self, messenger):
+    def __init__(self, db_path, messenger):
         # type: (Queue) -> Logger
         self.frames = []
         self.messenger = messenger
-        self.logging = False
+        self.running = False
+        self.subject = None
+        self.action = None
 
     def log(self):
-
-        subject = None
-        action = None
-
-        print('Starting logging')
+        # type: () -> None
+        Entity.bootstrap(db_path)
+        print('Starting log')
 
         while True:
             order, payload = self.messenger.get()
@@ -29,36 +31,36 @@ class Logger(object):
                 self.frames.append(payload)
 
             elif order == Message.START:
-                subject = payload
+                if isinstance(payload, Subject):
+                    self.subject = payload
+                elif isinstance(payload, Action):
+                    self.action = action
 
             elif order == Message.SAVE:
-                assert payload == action
-                action.save()
-                action = None
                 self.save()
             
             elif order == Message.NEXT:
-                if self.logging:
-                    action.save()
-                    self.save()
-                action = payload
+                self.action = payload
                 self.logging = True
 
             elif order == Message.STOP:
-                if self.logging:
-                    action.save()
+                if isinstance(payload, Subject):
                     self.save()
-                self.logging = False
-                break
+                    self.running = False
+                    break
+                elif isinstance(payload, Action):
+                    self.running = False
 
-            elif order == Message.REMAKE and self.logging:
-                assert action == payload
-                Entity.rollback()
-                self.frames = []
+            elif order == Message.REMAKE:
+                self.discard()
 
-        print('Terminating logging')
+        print('Terminating log')
 
     def save(self):
+        # type: () -> None
+        self.subject.save()
+        self.action.save()
+
         try:
         
             for frame, hands in self.frames:
@@ -75,4 +77,9 @@ class Logger(object):
             raise e
         
         Entity.commit()
+        self.frames = []
+
+    def discard(self):
+        # type: () -> None
+        Entity.rollback()
         self.frames = []

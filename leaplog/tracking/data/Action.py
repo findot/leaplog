@@ -15,6 +15,12 @@ class Action(Entity):
         self.reference = reference
         self.record_time = record_time
 
+    def to_dict(self):
+        return {
+            'reference': self.reference,
+            'record_time': self.record_time
+        }
+
     def __eq__(self, other):
         if not isinstance(other, Action):
             raise NotImplementedError()
