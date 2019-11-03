@@ -1,15 +1,18 @@
 
 (function () {
 
-    window.runtime = {};
+    window.runtime          = {};
 
-    const subject = component('subject');
-    const subjectForm = q('form', subject);
+    const alert             = q('#alert');
+    alert.style.display     = 'none';
 
-    const experiment = component('experiment');
-    const experimentForm = q('form', experiment);
+    const subject           = component('subject');
+    const subjectForm       = q('form', subject);
 
-    const action = component('action');
+    const experiment        = component('experiment');
+    const experimentForm    = q('form', experiment);
+
+    const action            = component('action');
     const actionStartForm   = q('form.start-action', action);
     const actionStopForm    = q('form.stop-action', action);
     const actionRemakeForm  = q('form.remake-action', action);
@@ -41,6 +44,6 @@
         .then(data => {
             window.runtime = data;
             reflectStatus(data)
-        }).catch(printerr);
+        }).catch(onError);
 
 })()

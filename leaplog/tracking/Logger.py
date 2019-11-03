@@ -1,25 +1,27 @@
 # -*- coding: utf-8 -*-
 
 import sqlite3
+from multiprocessing import Process
 from time import time
 from .data import *
 from .Message import Message
 from utils import db_path
 
 
-class Logger(object):
+class Logger(Process):
 
     __slots__ = [ 'frames', 'messenger', 'running', 'subject', 'action' ]
 
-    def __init__(self, db_path, messenger):
+    def __init__(self, messenger):
         # type: (Queue) -> Logger
+        super(Logger, self).__init__()
         self.frames = []
         self.messenger = messenger
         self.running = False
         self.subject = None
         self.action = None
 
-    def log(self):
+    def run(self):
         # type: () -> None
         Entity.bootstrap(db_path)
         print('Starting log')

@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from os.path import dirname, realpath
-
-topdir = dirname(dirname(realpath(__file__)))
-db_path = '{0}/data.db'.format(topdir)
-
 from multiprocessing import Queue, Process
 from time import time
 from .tracking import Tracker, Logger, Message
@@ -31,18 +26,10 @@ class System(object):
             self._order_queue,
             self._logging_queue
         )
-        self._tracking_worker   = Process(
-            target=Tracker.track,
-            args=(self.tracker,)
-        )
         self.logger             = Logger(
-            db_path,
             self._logging_queue
         )
-        self._logging_worker    = Process(
-            target=Logger.log,
-            args=(self.logger,)
-        )
+        
 
     def start_experiment(self):
         if self.experiment_running:
@@ -52,8 +39,8 @@ class System(object):
         
         self.action = Action(self.subject, self.action_number, None)
 
-        self._tracking_worker.start()
-        self._logging_worker.start()
+        self.tracker.start()
+        self.logger.start()
         
         self._order_queue.put((Message.START, self.subject))
         
@@ -61,7 +48,7 @@ class System(object):
 
     def stop_experiment(self):
         self._order_queue.put((Message.STOP, None))
-        self._tracking_worker.join()
+        self.tracker.join()
 
         self.experiment_running = False
         self.current_action = None

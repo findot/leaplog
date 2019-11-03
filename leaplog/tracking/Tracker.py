@@ -2,18 +2,21 @@
 
 import Leap
 from time import time, sleep
-from multiprocessing import Queue
+from os import getpid
+from multiprocessing import Process, Queue
 from .Message import Message
 from .data import Subject, Action, Frame, Hand, Finger, Bone
 
 
-class Tracker(object):
+class Tracker(Process):
 
     __slots__ = [ 'controller', 'commander', 'messenger', 'in_progress',
                   'subject', 'action', 'recording' ]
 
     def __init__(self, commander, messenger):
         # type: (Leap.Controller, Queue, Queue) -> Tracker
+        super(Tracker, self).__init__()
+
         self.controller = Leap.Controller()
         self.commander  = commander
         self.messenger  = messenger
@@ -38,7 +41,7 @@ class Tracker(object):
             order = payload = None
         return order, payload
 
-    def track(self):
+    def run(self):
         # type: (Logger, Subject) -> None
         if not self.ready:
             raise RuntimeError('Leap Motion device is not connected')

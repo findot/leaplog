@@ -88,6 +88,12 @@ timer.prototype = {
     stop() { clearTimeout(this.counter); }
 }
 
+function onError(err) {
+    printerr(err);
+    q('#alert').style.display = 'block';
+    //setTimeout(() => { alert.style.display = 'none'; }, 2000);
+}
+
 function async_submit(form, handler) {
     form.on('submit', e => {
         e.preventDefault();
@@ -96,10 +102,17 @@ function async_submit(form, handler) {
         fetch(destination, {
             method: 'POST',
             body: new FormData(form)
+        }).then(response => {
+            if (!response.ok)
+                throw Error(response.statusText);
+            return response;
         })
         .then(_ => fetch('/experiment/status'))
-        .then(response => response.json())
-        .then(handler);
+        .then(response => {
+            return response.json()
+        })
+        .then(handler)
+        .catch(onError);
     })
 }
 
