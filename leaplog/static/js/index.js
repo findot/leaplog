@@ -26,10 +26,10 @@
     // DOM Action Bindings
 
     function reflectStatus(data) {    
-        if (data.action_running)
+        if (data.experiment_running || data.action_running)
             return showComponent('action');
 
-        if (data.experiment_running)
+        if (data.subject_registered)
             return showComponent('experiment');
 
         return showComponent('subject');

@@ -12,6 +12,7 @@ class System(object):
 
     def __init__(self):
         self.experiment_start   = time()
+        self.subject_registered = False
         self.experiment_running = False
 
         self.subject            = None
@@ -32,6 +33,10 @@ class System(object):
             self._logging_queue
         )
 
+    def register_subject(self, subject):
+        self.subject = subject
+        self.subject_registered
+
     def start_experiment(self):
         if self.experiment_running:
             raise RuntimeError('An experiment is in progress!')
@@ -44,8 +49,8 @@ class System(object):
         self.logger.start()
         
         self._order_queue.put((Message.START, self.subject))
-        
         self.experiment_running = True
+
 
     def stop_experiment(self):
         self._order_queue.put((Message.STOP, None))
@@ -84,6 +89,7 @@ class System(object):
         subject = self.subject.to_dict() if self.subject else None
         action = self.action.to_dict() if self.action else None
         status = {
+            'subject_registered': self.subject_registered,
             'experiment_running': self.experiment_running,
             'experiment_start': self.experiment_start,
             'subject': subject,

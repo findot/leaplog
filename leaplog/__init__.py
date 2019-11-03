@@ -37,10 +37,10 @@ def index():
 def register_subject():
     if not request.form:
         abort(400)
-    
+
     firstname = request.form['firstname']
     lastname = request.form['lastname']
-    system.subject = Subject(firstname, lastname)
+    system.register_subject(Subject(firstname, lastname))
 
     return OK
 
