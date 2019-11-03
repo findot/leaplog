@@ -41,7 +41,6 @@ def register_subject():
     firstname = request.form['firstname']
     lastname = request.form['lastname']
     system.subject = Subject(firstname, lastname)
-    system.start_experiment()
 
     return OK
 
