@@ -26,46 +26,58 @@ class Logger(Process):
         Entity.bootstrap(db_path)
         print('Starting log')
 
+        messages = []
         while True:
-            order, payload = self.messenger.get()
+            while not self.messenger.empty():
+                messages.append(self.messenger.get())
+
+            while not len(messages) == 0:
+                order, payload = messages.pop()
             
-            if order == Message.FRAME:
-                self.frames.append(payload)
+                if order == Message.FRAME:
+                    self.frames.append(payload)
 
-            elif order == Message.START:
-                if isinstance(payload, Subject):
-                    self.subject = payload
-                elif isinstance(payload, Action):
-                    self.action = action
+                elif order == Message.START:
+                    if isinstance(payload, Subject) and not self.subject == payload:
+                        self.subject = payload
+                    elif isinstance(payload, Action) and not self.action == payload:
+                        self.action = payload
 
-            elif order == Message.SAVE:
-                self.save()
-            
-            elif order == Message.NEXT:
-                self.action = payload
-                self.logging = True
-
-            elif order == Message.STOP:
-                if isinstance(payload, Subject):
+                elif order == Message.SAVE:
                     self.save()
-                    self.running = False
-                    break
-                elif isinstance(payload, Action):
-                    self.running = False
+                
+                elif order == Message.NEXT:
+                    self.action = payload
+                    self.running = True
 
-            elif order == Message.REMAKE:
-                self.discard()
+                elif order == Message.STOP:
+                    if isinstance(payload, Subject):
+                        self.save()
+                        self.running = False
+                        break
+                    elif isinstance(payload, Action):
+                        self.running = False
+
+                elif order == Message.REMAKE:
+                    self.discard()
 
         print('Terminating log')
 
     def save(self):
         # type: () -> None
-        self.subject.save()
-        self.action.save()
+        self.action.subject = self.subject
+        if not self.subject.saved:
+            print("Saving subject")
+            self.subject.save()
+
+        if not self.action.saved:
+            print("Saving action")
+            self.action.save()
 
         try:
         
             for frame, hands in self.frames:
+                frame.action = self.action
                 for hand, fingers in hands:
                     for finger, bones in fingers:
                         for bone in bones:

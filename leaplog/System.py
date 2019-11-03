@@ -35,7 +35,7 @@ class System(object):
 
     def register_subject(self, subject):
         self.subject = subject
-        self.subject_registered
+        self.subject_registered = True
 
     def start_experiment(self):
         if self.experiment_running:
@@ -58,14 +58,16 @@ class System(object):
 
         self.experiment_running = False
         self.current_action = None
-        self.current_subject = None
+        self.subject = None
 
 
     def start_action(self):
         if self.action_running:
             raise RuntimeError('A recording is in progress!')
         self.action.record_time = time()
-        self._order_queue.put((Message.NEXT, self.action))
+        self._order_queue.put((Message.START, self.action))
+        self.action_running = True
+        print(self.action)
 
     def stop_action(self):
         if not self.action_running:
@@ -77,11 +79,16 @@ class System(object):
         if self.action_running:
             raise RuntimeError('A recording is in progress!')
         self.action_number += 1
-        self.action = Action(self.current_subject, self.action_number, None)
-        self.start_action(next_action)
-
+        self.action = Action(self.subject, self.action_number, None)
+        
     def remake_action(self):
         pass
+
+    def save_action(self):
+        if self.action_running:
+            raise RuntimeError('A recording is in progress!')
+        self._order_queue.put((Message.SAVE, self.action))
+
 
 
     @property

@@ -18,7 +18,6 @@ class Tracker(Process):
         super(Tracker, self).__init__()
 
         self.control    = control
-        self.controller = Leap.Controller()
         self.commander  = commander
         self.messenger  = messenger
         
@@ -27,11 +26,8 @@ class Tracker(Process):
         
         self.action     = None
         self.recording = False
+        self.last_frame_id = 0
 
-    @property
-    def ready(self):
-        self.controller.frame()
-        return self.controller.is_connected
 
     def poll(self):
         if not self.recording:
@@ -44,28 +40,36 @@ class Tracker(Process):
 
     def run(self):
         # type: (Logger, Subject) -> None
-        if not self.ready:
-            raise RuntimeError('Leap Motion device is not connected')
+        controller = Leap.Controller()
+        while not controller.is_connected:
+            print("Connecting to leap motion device")
+            sleep(0.1)
+
         
         print('Starting track')
 
         while True:
             try:
+                assert controller.is_connected
                 order, payload = self.poll()
                 
                 if order is None and self.recording:
-                    record = self.leap_data()
-                    self.messenger.put((Message.FRAME, record))
+                    frame, hands = self.leap_data(controller)
+                    if frame is None:
+                        continue   
+                    self.messenger.put((Message.FRAME, (frame, hands)))
 
                 elif order == Message.START:
-                    if self.subject is None:
+                    if isinstance(payload, Subject):
                         self.subject = payload
                         self.in_progress = True
                         self.messenger.put((Message.START, self.subject))
-                    elif self.action is None:
+                        print("Start subject")
+                    elif isinstance(payload, Action):
                         self.action = payload
                         self.recording = True
                         self.messenger.put((Message.START, self.action))
+                        print("Start action")
                     else:
                         raise RuntimeError('Inconsistent message!')
 
@@ -79,10 +83,10 @@ class Tracker(Process):
                 elif order == Message.STOP:
                     if not self.recording and not self.in_progress:
                         raise RuntimeError('No recording in progress!')
-                    if self.recording:
+                    if isinstance(payload, Action):
                         self.messenger.put((Message.STOP, self.action))
                         self.recording = False
-                    elif self.in_progress:
+                    elif isinstance(payload, Subject):
                         self.messenger.put((Message.STOP, self.subject))
                         self.in_progress = False
                         break
@@ -92,6 +96,10 @@ class Tracker(Process):
                         raise RuntimeError('A recording is in progress!')
                     self.messenger.put((Message.REMAKE, self.action))  
 
+                elif order == Message.SAVE:
+                    self.messenger.put((Message.SAVE, payload))
+                    print("Message Save")
+
                 else:
                     raise RuntimeError('Unknown message {0}!'.format(order))  
             
@@ -100,11 +108,14 @@ class Tracker(Process):
 
         print('Terminating track')
 
-    def leap_data(self):
+    def leap_data(self,controller):
         # type: (Action) -> (Frame, [Hand])
         whence = time() - self.action.record_time
-        leap_frame = self.controller.frame()
-        frame = Frame(action, whence)
+        leap_frame = controller.frame()
+        if leap_frame.id == self.last_frame_id:
+            return None,None    
+        self.last_frame_id = leap_frame.id
+        frame = Frame(self.action, whence)
 
         hands = []        
         for leap_hand in leap_frame.hands:

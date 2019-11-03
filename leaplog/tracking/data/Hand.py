@@ -11,7 +11,7 @@ class Hand(Entity):
     __slots__ = [ 'frame', 'arm', 'is_left', 'is_right', 'basis', 'direction',
                   'palm_normal', 'palm_position', 'palm_velocity',
                   'wrist_position', 'confidence', 'time_visible',
-                  'sphere_center', 'sphere_radius', 'fingers' ]
+                  'sphere_center', 'sphere_radius' ]
     _table_ = 'hands'
 
     def __init__(self, frame, leap_hand):

@@ -27,10 +27,7 @@ OK = json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 @app.route('/')
 def index():
-    error = 'Leap Motion device is not connected' \
-        if not system.tracker.controller.is_connected \
-        else ''
-    return render_template('index.html', error=error)
+    return render_template('index.html', error="")
 
 
 @app.route('/subject', methods=['POST'])
@@ -70,12 +67,15 @@ def stop_action():
     system.stop_action()
     return OK
 
-@app.route('/action/remake')
+@app.route('/action/remake', methods=['POST'])
 def remake_action():
     system.remake_action()
     return  OK
 
-@app.route('/action/next')
+@app.route('/action/next', methods=['POST'])
 def next_action():
+    system.save_action()
     system.next_action()
     return OK
+
+

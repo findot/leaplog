@@ -88,5 +88,5 @@ class Entity(object):
 
     def __eq__(self, other):
         if type(self) != type(other):
-            raise NotImplementedError()
+            return False
         return self.id is not None and self.id == other.id

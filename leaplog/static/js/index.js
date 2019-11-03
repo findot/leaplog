@@ -21,6 +21,7 @@
     const actionStartForm   = q('form.start-action', action);
     const actionStopForm    = q('form.stop-action', action);
     const actionRemakeForm  = q('form.remake-action', action);
+    const actionNextForm    = q('form.next-action', action);
 
 
     // DOM Action Bindings
@@ -39,7 +40,8 @@
     async_submit(experimentForm, reflectStatus);
     async_submit(actionStartForm, reflectStatus);
     async_submit(actionStopForm, reflectStatus);
-    async_submit(actionRemakeForm, async_submit);
+    async_submit(actionRemakeForm, reflectStatus);
+    async_submit(actionNextForm, reflectStatus);
 
 
     // App Entrypoint

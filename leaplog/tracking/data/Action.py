@@ -23,5 +23,5 @@ class Action(Entity):
 
     def __eq__(self, other):
         if not isinstance(other, Action):
-            raise NotImplementedError()
+            return False
         return self.reference == other.reference
