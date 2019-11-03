@@ -27,7 +27,10 @@ OK = json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    error = 'Leap Motion device is not connected' \
+        if not system.tracker.controller.is_connected \
+        else ''
+    return render_template('index.html', error=error)
 
 
 @app.route('/subject', methods=['POST'])

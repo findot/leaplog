@@ -19,17 +19,18 @@ class System(object):
         self.action_number      = 0
         self.action_running     = False
 
+        self._control_queue     = Queue()
         self._order_queue       = Queue()
         self._logging_queue     = Queue()
 
         self.tracker            = Tracker(
+            self._control_queue,
             self._order_queue,
             self._logging_queue
         )
         self.logger             = Logger(
             self._logging_queue
         )
-        
 
     def start_experiment(self):
         if self.experiment_running:
@@ -88,7 +89,15 @@ class System(object):
             'subject': subject,
             'action': action,
             'action_running': self.action_running,
-            'actions_left': self.ACTION_NUMBER - self.action_number
+            'actions_left': self.ACTION_NUMBER - self.action_number,
+            'error': self.error
         }
 
         return status
+
+    @property
+    def error(self):
+        try:
+            return str(self._control_queue.get_nowait())
+        except:
+            return None

@@ -4,7 +4,12 @@
     window.runtime          = {};
 
     const alert             = q('#alert');
-    alert.style.display     = 'none';
+    if (alert.textContent == '')
+        alert.style.display     = 'none';
+
+    if (window.error)
+        for (b of qa('button'))
+            b.disabled = true;
 
     const subject           = component('subject');
     const subjectForm       = q('form', subject);
