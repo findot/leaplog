@@ -11,3 +11,4 @@ class Message(Enum):
     SAVE = 3
     REMAKE = 4
     FRAME = 5
+    TERMINATE = 6

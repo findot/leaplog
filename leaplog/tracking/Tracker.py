@@ -13,14 +13,14 @@ class Tracker(Process):
     __slots__ = [ 'control', 'controller', 'commander', 'messenger',
                   'in_progress', 'subject', 'action', 'recording' ]
 
-    def __init__(self, control, commander, messenger):
+    def __init__(self, control, commander, messenger, logger):
         # type: (Leap.Controller, Queue, Queue) -> Tracker
         super(Tracker, self).__init__()
 
         self.control    = control
         self.commander  = commander
         self.messenger  = messenger
-        
+
         self.in_progress = False
         self.subject    = None
         
@@ -28,6 +28,7 @@ class Tracker(Process):
         self.recording = False
         self.last_frame_id = 0
 
+        self.logger = logger
 
     def poll(self):
         if not self.recording:
@@ -41,22 +42,28 @@ class Tracker(Process):
     def run(self):
         # type: (Logger, Subject) -> None
         controller = Leap.Controller()
+        self.logger.warn("TRACKER - Connecting to leap motion device...")
         while not controller.is_connected:
-            print("Connecting to leap motion device")
+            if self.control.empty():
+                self.control.put('Leap Motion Device is not ready')
             sleep(0.1)
+        self.logger.warn('TRACKER - OK')
 
-        
-        print('Starting track')
-
+        self.logger.info('TRACKER - Starting track')
         while True:
             try:
                 assert controller.is_connected
                 order, payload = self.poll()
                 
-                if order is None and self.recording:
+                if order == Message.TERMINATE:
+                    self.logger.info('TRACKER - Terminating')
+                    self.messenger.put((Message.TERMINATE, None))
+                    return
+
+                elif order is None and self.recording:
                     frame, hands = self.leap_data(controller)
                     if frame is None:
-                        continue   
+                        continue
                     self.messenger.put((Message.FRAME, (frame, hands)))
 
                 elif order == Message.START:
@@ -64,12 +71,10 @@ class Tracker(Process):
                         self.subject = payload
                         self.in_progress = True
                         self.messenger.put((Message.START, self.subject))
-                        print("Start subject")
                     elif isinstance(payload, Action):
                         self.action = payload
                         self.recording = True
                         self.messenger.put((Message.START, self.action))
-                        print("Start action")
                     else:
                         raise RuntimeError('Inconsistent message!')
 
@@ -98,15 +103,15 @@ class Tracker(Process):
 
                 elif order == Message.SAVE:
                     self.messenger.put((Message.SAVE, payload))
-                    print("Message Save")
 
                 else:
                     raise RuntimeError('Unknown message {0}!'.format(order))  
             
             except Exception as e:
+                self.logger.warning('TRACKER - ' + str(e))
                 self.control.put(e)
 
-        print('Terminating track')
+        self.logger.info('TRACKER - Terminating')
 
     def leap_data(self,controller):
         # type: (Action) -> (Frame, [Hand])
@@ -119,16 +124,20 @@ class Tracker(Process):
 
         hands = []        
         for leap_hand in leap_frame.hands:
-            hand = Hand(frame, leap_hand)
+            hand = Hand.of(frame, leap_hand)
             fingers = []
             for leap_finger in leap_hand.fingers:
-                finger = Finger(hand, leap_finger)
+                finger = Finger.of(hand, leap_finger)
                 leap_bones = [ leap_finger.bone(t.value) for t in Bone.Type ]
                 bones = map(
-                    lambda leap_bone: Bone(finger, leap_bone),
+                    lambda leap_bone: Bone.of(finger, leap_bone),
                     leap_bones
                 )
                 fingers.append((finger, bones))
             hands.append((hand, fingers))
 
         return frame, hands
+
+    @property
+    def ready(self):
+        return self.controller.is_connected

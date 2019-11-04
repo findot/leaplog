@@ -11,10 +11,10 @@ class Basis(Entity):
 
     @classmethod
     def of(cls, leap_matrix):
-        x = Vector(leap_matrix.x_basis)
-        y = Vector(leap_matrix.y_basis)
-        z = Vector(leap_matrix.z_basis)
-        origin = Vector(leap_matrix.origin)
+        x = Vector.of(leap_matrix.x_basis)
+        y = Vector.of(leap_matrix.y_basis)
+        z = Vector.of(leap_matrix.z_basis)
+        origin = Vector.of(leap_matrix.origin)
     
         return cls(x, y, z, origin)
 

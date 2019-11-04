@@ -18,18 +18,18 @@ class Hand(Entity):
     @classmethod
     def of(cls, frame, leap_hand):
         frame          = frame
-        arm            = Arm(leap_hand.arm)
+        arm            = Arm.of(leap_hand.arm)
         is_left        = leap_hand.is_left
         is_right       = leap_hand.is_right
-        basis          = Basis(leap_hand.basis)
-        direction      = Vector(leap_hand.direction)
-        palm_normal    = Vector(leap_hand.palm_normal)
-        palm_position  = Vector(leap_hand.palm_position)
-        palm_velocity  = Vector(leap_hand.palm_velocity)
-        wrist_position = Vector(leap_hand.wrist_position)
+        basis          = Basis.of(leap_hand.basis)
+        direction      = Vector.of(leap_hand.direction)
+        palm_normal    = Vector.of(leap_hand.palm_normal)
+        palm_position  = Vector.of(leap_hand.palm_position)
+        palm_velocity  = Vector.of(leap_hand.palm_velocity)
+        wrist_position = Vector.of(leap_hand.wrist_position)
         confidence     = leap_hand.confidence
         time_visible   = leap_hand.time_visible
-        sphere_center  = Vector(leap_hand.sphere_center)
+        sphere_center  = Vector.of(leap_hand.sphere_center)
         sphere_radius  = leap_hand.sphere_radius
 
         return cls(frame, arm, is_left, is_right, basis, direction,

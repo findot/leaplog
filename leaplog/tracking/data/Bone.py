@@ -23,9 +23,9 @@ class Bone(Entity):
     @classmethod
     def of(cls, finger, leap_bone):
         finger = finger
-        basis = Basis(leap_bone.basis)
-        direction = Vector(leap_bone.direction)
-        center = Vector(leap_bone.center)
+        basis = Basis.of(leap_bone.basis)
+        direction = Vector.of(leap_bone.direction)
+        center = Vector.of(leap_bone.center)
         type   = leap_bone.type
         length = leap_bone.length
         width  = leap_bone.width

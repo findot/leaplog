@@ -19,8 +19,8 @@ from .tracking.data import Subject
 from .System import System
 from flask import Flask, request, render_template, jsonify, abort
 
-system = System()
 app = Flask(__name__)
+system = System(app.logger)
 
 OK = json.dumps({'success': True}), 200, {'ContentType': 'application/json'} 
 
@@ -37,7 +37,8 @@ def register_subject():
 
     firstname = request.form['firstname']
     lastname = request.form['lastname']
-    system.register_subject(Subject(firstname, lastname))
+    if system.register_subject(Subject(firstname, lastname)) is not None:
+        abort(400)
 
     return OK
 
@@ -65,6 +66,11 @@ def start_action():
 @app.route('/action/stop', methods=['POST'])
 def stop_action():
     system.stop_action()
+    return OK
+
+@app.route('/action/toggle', methods=['POST'])
+def toggle_action():
+    system.toggle_action()
     return OK
 
 @app.route('/action/remake', methods=['POST'])

@@ -28,9 +28,9 @@ const showComponent = name => {
     component(name).style.display = 'block';
 }
 
-// pad2 :: int -> str
-const pad2 = n =>
-    (n > 9 ? '' : '0') + n;
+// pad :: (int, int) -> str
+const pad = (times, n) =>
+    n > (Math.pow(10, times-1) - 1) ? `${n}` : `${'0'.repeat(times-1)}${n}`;
 
 // elapsed :: int -> int
 const elapsed = timestamp =>
@@ -56,46 +56,74 @@ function hms(timestamp) {
     const m = mins(h[1]);
     const s = secs(m[1]);
     
-    const res = tuple(h[0], m[0], s[0], s[1]);
-    res.toString = function() {
-        return `${pad2(this[0])}h ${pad2(this[1])}m ${pad2(this[2])}s${this[3]}`
+    const res = {
+        values: tuple(h[0], m[0], s[0], s[1]),
+        toString() {
+            return `
+                ${pad(2, this.values[0])}h
+                ${pad(2, this.values[1])}m
+                ${pad(2, this.values[2])}s
+                ${pad(2, Math.floor(this.values[3] / 10).toFixed(0))}`
+        }
     }
-    
-    return res
+
+    return res;
 }
 
 // timer :: (str, int, int) => timer
-const timer = function(selector, start, refresh) {
+const timer = function(node, time, refresh) {
     if (!(this instanceof timer))
         return new timer();
     
-    this.node = q(selector);
-    this.start = start;
+    this.node = node;
+    this.time = time;
     this.refresh = refresh;
     this.counter = null;
 }
 
 timer.prototype = {
     constructor: timer,
-    
+
     start() {
-        this.counter = setTimeout(
-            () => this.node.textContent = hms(timestamp).toString(),
-            this.refresh
+        let that = this;
+        this.counter = setInterval(
+            () => that.draw(),
+            that.refresh
         );
     },
-    
-    stop() { clearTimeout(this.counter); }
+
+    reset(time) { this.time = time; },
+
+    draw() { this.node.textContent = hms(this.time).toString(); },
+
+    stop() { clearInterval(this.counter); }
 }
 
-function onError(err) {
+function status() {
+    return fetch('/experiment/status')
+        .then(response => {
+            if (response.code < 200 || response.code > 299)
+                throw new Error(response);
+            return response.json();
+        })
+        .then(data => {
+            window.runtime = data;
+            if (data.error)
+                throw new Error(data.error);
+            return data;
+        }).catch(showError);
+}
+
+function showError(err) {
     printerr(err);
-    q('#alert').style.display = 'block';
-    //setTimeout(() => { alert.style.display = 'none'; }, 2000);
+    const alert = q('#alert');
+    alert.textContent = err;
+    alert.style.display = 'block';
+    setTimeout(() => { alert.style.display = 'none'; }, 4000)
 }
 
-function async_submit(form, handler) {
-    form.on('submit', e => {
+function asyncSubmit(form, handler) {
+    return form.on('submit', e => {
         e.preventDefault();
         const destination = form.action;
 
@@ -107,12 +135,9 @@ function async_submit(form, handler) {
                 throw Error(response.statusText);
             return response;
         })
-        .then(_ => fetch('/experiment/status'))
-        .then(response => {
-            return response.json()
-        })
+        .then(_ => status())
         .then(handler)
-        .catch(onError);
+        .catch(showError);
     })
 }
 
