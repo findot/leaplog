@@ -6,7 +6,7 @@ import sys
 
 from utils import db_path
 from os.path import dirname, realpath, exists
-from . import app
+from . import app, system
 
 def assert_initialized():
     if not exists(db_path):
@@ -23,6 +23,7 @@ def cli():
 @click.option('--port', default=8000, help='The port on which the server shall listen')
 def serve(interface, port):
     assert_initialized()
+    system.start()
     app.run(host=interface, port=port)
 
 

@@ -36,9 +36,6 @@ class System(object):
             logger
         )
 
-        self.tracker.start()
-        self.logger.start()
-
         self._register_sigint()
         self._error = None
 
@@ -110,6 +107,10 @@ class System(object):
 
     def err(self, error):
         self._error = error
+
+    def start(self):
+        self.tracker.start()
+        self.logger.start()
 
     @property
     def status(self):
