@@ -20,13 +20,26 @@ class Bone(Entity):
         TYPE_RING = 3
         TYPE_PINKY = 4
 
-    def __init__(self, finger, leap_bone):
+    @classmethod
+    def of(cls, finger, leap_bone):
+        finger = finger
+        basis = Basis(leap_bone.basis)
+        direction = Vector(leap_bone.direction)
+        center = Vector(leap_bone.center)
+        type   = leap_bone.type
+        length = leap_bone.length
+        width  = leap_bone.width
+
+        return cls(finger, basis, direction, center, type, length, width)
+
+
+    def __init__(self, finger, basis, direction, center, type, length, width, id=None):
         # type: (Finger, Leap.Bone) -> Bone
-        super(Bone, self).__init__()
+        super(Bone, self).__init__(id)
         self.finger = finger
-        self.basis = Basis(leap_bone.basis)
-        self.direction = Vector(leap_bone.direction)
-        self.center = Vector(leap_bone.center)
-        self.type   = leap_bone.type
-        self.length = leap_bone.length
-        self.width  = leap_bone.width
+        self.basis = basis
+        self.direction = direction
+        self.center = center
+        self.type   = type
+        self.length = length
+        self.width  = width

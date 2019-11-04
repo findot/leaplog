@@ -34,11 +34,8 @@
         .btn {
             width: 100%;
         }
-    </style>
 
-    <script>
-        window.error = {{ 'true' if error != '' else 'false' }};
-    </script>
+    </style>
 
 </head>
 <body>
@@ -52,7 +49,7 @@
         <!-- Timer -->
         <div class="row component timer" style="display: none"><div class="col-12 text-center p-4">
             <p class="text-muted">EXPERIMENT LENGTH</p>
-            <h1 id="timer" class="text-body"></h1>
+            
         </div></div>
     
         <div class="row component subject" style="display: none"><div class="col-12">
@@ -92,14 +89,13 @@
             <form action="/action/next" method="POST" class="next-action">
                 <button type="submit" class="btn btn-success">Validate</button>
             </form>
-
+            
+            <div class="timer text-body"></div>
             <div class="remaining"></div>
         </div></div>
 
         <div class="row" id="alert">
-            <div class="alert alert-danger">
-                {{ error }}
-            </div>
+            <div class="alert alert-danger">{{ error }}</div>
         </div>
 
     </div></div>

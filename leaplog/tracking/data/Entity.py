@@ -3,12 +3,33 @@
 import sqlite3
 
 
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
+
 class EntityMeta(type):
 
     def __getitem__(cls, key):
         if not isinstance(key, int):
             raise TypeError('Unsupported type for Entity access')
         return cls.select(key)
+
+    def __iter__(cls):
+        if not cls._rows_ or cls._updated_:
+            cursor = cls.cursor().execute(cls._select_())
+            cls._rows_ = cursor.fetchall()
+            cls._updated_ = False
+            cls._index_ = -1
+        return cls
+    
+    def next(cls):
+        if cls._index_ < len(cls._rows_):
+            cls._index_ += 1
+            return cls(**cls._rows_[cls._index_])
+        raise StopIteration
 
 
 class Entity(object):
@@ -19,9 +40,13 @@ class Entity(object):
 
     __slots__ = [ 'saved', 'id' ]
     
-    _insert_query_ = None
-    _connection_ = None
-    _cursor_ = None
+    _insert_query_  = None
+    _select_query_  = None
+    _connection_    = None
+    _cursor_        = None
+    _rows_          = None
+    _index_         = -1
+    _updated_       = False
 
     @classmethod
     def bootstrap(cls, db_path):
@@ -30,6 +55,7 @@ class Entity(object):
             db_path,
             detect_types=sqlite3.PARSE_DECLTYPES
         )
+        cls._connection_.row_factory = dict_factory
 
     @classmethod
     def cursor(cls):
@@ -60,11 +86,23 @@ class Entity(object):
             '''.format(name, keys, values)
         return cls._insert_query_
 
+    @classmethod
+    def _select_(cls):
+        if cls._select_query_ is None:
+            name = cls._table_
+            cls._select_query_ = '''
+            SELECT * FROM {0}
+            '''.format(name)
+        return cls._select_query_
+
     # --------------------------------------------------------- DYNAMIC METHODS
 
-    def __init__(self):
+    def __init__(self, id=None):
         self.saved = False
         self.id = None
+        if id is not None:
+            self.saved = True
+            self.id = id
 
     def save(self):
         # type: () -> int
@@ -81,6 +119,8 @@ class Entity(object):
         self.id = self.cursor().lastrowid
         self.saved = True        
         
+        type(self)._updated_ = True
+
         return self.id
 
     def __str__(self):

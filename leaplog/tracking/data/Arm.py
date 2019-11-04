@@ -10,11 +10,22 @@ class Arm(Entity):
                   'width' ]
     _table_ = 'arms'
 
-    def __init__(self, leap_arm):
+    @classmethod
+    def of(cls, leap_arm):
+        
+        basis = Basis(leap_arm.basis)
+        direction = Vector(leap_arm.direction)
+        elbow_position = Vector(leap_arm.elbow_position)
+        wrist_position = Vector(leap_arm.wrist_position)
+        width = leap_arm.width
+        
+        return cls(basis, direction, elbow_position, wrist_position, width)
+
+    def __init__(self, basis, direction, elbow_position, wrist, width, **kwargs):
         # type: ()
-        super(Arm, self).__init__()
-        self.basis = Basis(leap_arm.basis)
-        self.direction = Vector(leap_arm.direction)
-        self.elbow_position = Vector(leap_arm.elbow_position)
-        self.wrist_position = Vector(leap_arm.wrist_position)
-        self.width = leap_arm.width
+        super(Arm, self).__init__(**kwargs)
+        self.basis = basis
+        self.direction = direction
+        self.elbow_position = elbow_position
+        self.wrist_position = wrist_position
+        self.width = width
