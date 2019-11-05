@@ -13,26 +13,34 @@
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
           crossorigin="anonymous">
 
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+          rel="stylesheet">
+    
     <style>
 
-        #app .container {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: nowrap;
-            flex-direction: column;
-        }
-
         #alert {
-            margin: 0;
-            margin-top: 90%;
-        }
-
-        #alert .alert {
-            width: 100%;
-        }
+            position: absolute;
+            bottom: 0;
+        }        
 
         .btn {
             width: 100%;
+        }
+
+        .md-18 { font-size: 18px; }
+        .md-24 { font-size: 24px; }
+        .md-36 { font-size: 36px; }
+        .md-48 { font-size: 48px; }
+        .md-64 { font-size: 64px; }
+
+        .down {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 64px;
         }
 
     </style>
@@ -47,11 +55,6 @@
         </div></div>
     
         <!-- Timer -->
-        <div class="row component timer" style="display: none"><div class="col-12 text-center p-4">
-            <p class="text-muted">EXPERIMENT LENGTH</p>
-            
-        </div></div>
-    
         <div class="row component subject" style="display: none"><div class="col-12">
             <form action="/subject" method="POST">
                 <div class="form-group">
@@ -74,29 +77,38 @@
         </div></div>
 
         <div class="row component action"><div class="col-12">
-            <form action="/action/start" method="POST" class="start-action">
-                <button type="submit" class="btn btn-primary">Start</button>
-            </form>
-
-            <form action="/action/stop" method="POST" class="stop-action">
-                <button type="submit" class="btn btn-primary">Stop</button>
-            </form>
-
-            <form action="/action/remake" method="POST" class="remake-action">
-                <button type="submit" class="btn btn-secondary">Remake</button>
-            </form>
-
-            <form action="/action/next" method="POST" class="next-action">
-                <button type="submit" class="btn btn-success">Validate</button>
-            </form>
             
-            <div class="timer text-body"></div>
+            <div class="action-number text-center md-24 text-muted"></div>
+
+            <form action="/action/toggle" method="POST" class="toggle-action">
+                <button type="submit" class="btn text-center">
+                    <i class="material-icons md-64 text-danger toggle-start">fiber_manual_record</i>
+                    <i class="material-icons md-64 text-danger toggle-stop">stop</i>
+                </button>
+            </form>
+
+            <div class="text-body md-24 text-center p-2">
+                <b class="timer"></b>
+            </div>
+
+            <div class="down">
+                <form action="/action/remake" method="POST" class="remake-action">
+                    <button type="submit" class="btn">
+                        <i class="material-icons md-64 text-info">settings_backup_restore</i>
+                    </button>
+                </form>
+
+                <form action="/action/next" method="POST" class="next-action">
+                    <button type="submit" class="btn">
+                        <i class="material-icons md-64 text-success">done</i>
+                    </button>
+                </form>
+            </div>
+
             <div class="remaining"></div>
         </div></div>
 
-        <div class="row" id="alert">
-            <div class="alert alert-danger">{{ error }}</div>
-        </div>
+        <div id="alert" class="alert alert-danger"></div>
 
     </div></div>
 

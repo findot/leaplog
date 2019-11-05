@@ -12,66 +12,71 @@ class Logger(Process):
 
     __slots__ = [ 'frames', 'messenger', 'running', 'subject', 'action' ]
 
-    def __init__(self, messenger):
+    def __init__(self, messenger, logger):
         # type: (Queue) -> Logger
         super(Logger, self).__init__()
         self.frames = []
         self.messenger = messenger
+        self.logger = logger
         self.running = False
         self.subject = None
         self.action = None
 
     def run(self):
         # type: () -> None
+        self.logger.info('LOGGER - Bootstraping database connection...')
         Entity.bootstrap(db_path)
-        print('Starting log')
-
-        messages = []
+        self.logger.info('LOGGER - OK')
+        
+        self.logger.info('LOGGER - Starting log')
         while True:
-            while not self.messenger.empty():
-                messages.append(self.messenger.get())
+            order, payload = self.messenger.get()
+        
+            if order == Message.TERMINATE:
+                self.logger.info('LOGGER - Terminating')
+                self.discard()
+                return
 
-            while not len(messages) == 0:
-                order, payload = messages.pop()
-            
-                if order == Message.FRAME:
-                    self.frames.append(payload)
+            elif order == Message.FRAME:
+                self.logger.debug('LOGGER - Received frame')
+                self.frames.append(payload)
 
-                elif order == Message.START:
-                    if isinstance(payload, Subject) and not self.subject == payload:
-                        self.subject = payload
-                    elif isinstance(payload, Action) and not self.action == payload:
-                        self.action = payload
-
-                elif order == Message.SAVE:
-                    self.save()
-                
-                elif order == Message.NEXT:
+            elif order == Message.START:
+                if isinstance(payload, Subject) and not self.subject == payload:
+                    self.subject = payload
+                elif isinstance(payload, Action) and not self.action == payload:
                     self.action = payload
-                    self.running = True
 
-                elif order == Message.STOP:
-                    if isinstance(payload, Subject):
-                        self.save()
-                        self.running = False
-                        break
-                    elif isinstance(payload, Action):
-                        self.running = False
+            elif order == Message.SAVE:
+                self.save()
+            
+            elif order == Message.NEXT:
+                self.action = payload
+                self.running = True
 
-                elif order == Message.REMAKE:
-                    self.discard()
+            elif order == Message.STOP:
+                if isinstance(payload, Subject):
+                    self.save()
+                    self.running = False
+                    break
+                elif isinstance(payload, Action):
+                    self.running = False
 
-        print('Terminating log')
+            elif order == Message.REMAKE:
+                self.discard()
+
+        self.logger.info('LOGGER - Terminating log')
 
     def save(self):
         # type: () -> None
+        self.logger.warn('LOGGER - SAVING...')
         self.action.subject = self.subject
         if not self.subject.saved:
-            print("Saving subject")
+            self.logger.info("LOGGER - Saving subject")
             self.subject.save()
 
         if not self.action.saved:
-            print("Saving action")
+            self.logger.info("LOGGER - Saving action")
             self.action.save()
 
         try:
@@ -92,8 +97,10 @@ class Logger(Process):
         
         Entity.commit()
         self.frames = []
+        self.logger.warn('LOGGER - OK')
 
     def discard(self):
         # type: () -> None
+        self.logger.info('LOGGER - Discarding %d frames' % len(self.frames))
         Entity.rollback()
         self.frames = []
